@@ -3,40 +3,28 @@ const app = require('../src/app')
 const helpers = require('./test-helpers')
 
 describe('Reviews Endpoints', function() {
-  let db
+  let db;
 
-  const {
-    testThings,
-    testUsers,
-  } = helpers.makeThingsFixtures()
+  const { testThings, testUsers } = helpers.makeThingsFixtures();
 
-  before('make knex instance', () => {
+  before("make knex instance", () => {
     db = knex({
-      client: 'pg',
-      connection: process.env.TEST_DB_URL,
-    })
-    app.set('db', db)
-  })
+      client: "pg",
+      connection: process.env.TEST_DB_URL
+    });
+    app.set("db", db);
+  });
 
-  after('disconnect from db', () => db.destroy())
+  after("disconnect from db", () => db.destroy());
 
-  before('cleanup', () => helpers.cleanTables(db))
+  before("cleanup", () => helpers.cleanTables(db));
 
-  afterEach('cleanup', () => helpers.cleanTables(db))
+  afterEach("cleanup", () => helpers.cleanTables(db));
 
   describe(`POST /api/reviews`, () => {
-    beforeEach('insert things', () =>
-      helpers.seedThingsTables(
-        db,
-        testUsers,
-        testThings,
-      )
-    )
-      
-    function makeAuthHeader(user) {
-      const token = Buffer.from(`${user.user_name}:${user.password}`).toString('base64')
-      return `Basic ${token}`
-    }
+    beforeEach("insert things", () =>
+      helpers.seedThingsTables(db, testUsers, testThings)
+    );
 
     it(`creates an review, responding with 201 and the new review`, function() {
       this.retries(3)
@@ -46,11 +34,11 @@ describe('Reviews Endpoints', function() {
         text: 'Test new review',
         rating: 3,
         thing_id: testThing.id,
-        
+        user_id: testUser.id
       }
       return supertest(app)
         .post('/api/reviews')
-        .set('Authorization', makeAuthHeader(testUsers[0]))
+        .set('Authorization', helpers.makeAuthHeader(testUsers[0]))
         .send(newReview)
         .expect(201)
         .expect(res => {
@@ -83,28 +71,28 @@ describe('Reviews Endpoints', function() {
         )
     })
 
-    const requiredFields = ['text', 'rating', 'thing_id']
+    const requiredFields = ["text", "rating", "thing_id"];
 
     requiredFields.forEach(field => {
-      const testThing = testThings[0]
-      const testUser = testUsers[0]
+      const testThing = testThings[0];
+      const testUser = testUsers[0];
       const newReview = {
-        text: 'Test new review',
+        text: "Test new review",
         rating: 3,
-        thing_id: testThing.id,
-      }
+        thing_id: testThing.id
+      };
 
       it(`responds with 400 and an error message when the '${field}' is missing`, () => {
-        delete newReview[field]
+        delete newReview[field];
 
         return supertest(app)
-          .post('/api/reviews')
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .post("/api/reviews")
+          .set("Authorization", helpers.makeAuthHeader(testUser))
           .send(newReview)
           .expect(400, {
-            error: `Missing '${field}' in request body`,
-          })
-      })
-    })
-  })
-})
+            error: `Missing '${field}' in request body`
+          });
+      });
+    });
+  });
+});

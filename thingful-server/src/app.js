@@ -7,6 +7,7 @@ const { NODE_ENV } = require('./config')
 const thingsRouter = require('./things/things-router')
 const reviewsRouter = require('./reviews/reviews-router')
 
+
 const app = express()
 
 app.use(morgan((NODE_ENV === 'production') ? 'tiny' : 'common', {
